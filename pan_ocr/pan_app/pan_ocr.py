@@ -1,0 +1,110 @@
+import os
+import argparse
+import numpy as np
+import pandas
+import json
+import cv2
+import re
+
+import tensorflow as tf
+import keras
+from keras_retinanet import models
+from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
+from keras_retinanet.utils.visualization import draw_box, draw_caption
+from keras_retinanet.utils.colors import label_color
+
+from image_processing import img_inference
+
+#from ocr_app.text_processing import lines, check_date_pan
+from text_processing import lines, check_date_pan, text_clean
+
+# import the necessary packages
+import urllib.request
+
+# METHOD #1: OpenCV, NumPy, and urllib
+def url_to_image(url):
+	# download the image, convert it to a NumPy array, and then read
+	# it into OpenCV format
+	resp = urllib.request.urlopen(url)
+	image = np.asarray(bytearray(resp.read()), dtype="uint8")
+	image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+	# return the image
+	return image
+
+
+def get_session():
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    return tf.Session(config=config)
+    
+def load_retinanet_model():
+    MODEL_PATH = 'model/resnet50_csv_14.h5'
+    print('Downloaded pretrained model to ' + MODEL_PATH)
+
+    # keras.backend.tensorflow_backend.set_session(get_session())
+
+    CLASSES_FILE = 'model/classes.csv'
+    model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
+    # print(model_path)
+
+    # load retinanet model
+    model = models.load_model(model_path, backbone_name='resnet50')
+    model = models.convert_model(model)
+    return model
+
+def pan_ocr(img, model=None):
+    text_line_words = []
+    text_lines = []
+    name = ''
+    fname = ''
+    dob = ''
+    pan = ''
+
+    text_lines, text_lines_words = lines(img, False)
+
+    Pan_type, idx_date, dob, idx_pan, pan = check_date_pan(text_lines_words)
+    
+    if (idx_date == -1 and idx_pan == -1):
+        print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print("NOT found date or PAN. Automatically switching to preprocessing")
+        print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+#     if args["preprocess"] == 1 or (idx_date == -1 and idx_pan == -1 and args["auto"] == 1):
+        if (model == None):
+            model = load_retinanet_model()
+
+        # load label to names mapping for visualization purposes
+        #         labels_to_names = pandas.read_csv(CLASSES_FILE, header=None).T.loc[0].to_dict()
+
+        b, img = img_inference(img, model)
+        img = img[b[1]:b[3], b[0]:b[2]]
+        (H1, W1) = img.shape[:2]
+        ratio = img.shape[0] / 420.0
+
+        text_lines, text_lines_words = lines(img, False)
+        Pan_type, idx_date, dob, idx_pan, pan = check_date_pan(text_lines_words)
+    c = 0
+    names = []
+    for i in range(idx_date - 1, -1, -1):
+        capital_str = re.search('[A-Z\s]+', text_lines[i])
+        # if text_lines[i].isupper() and c<2:
+        if capital_str and c < 2:
+            text_lines[i] = capital_str.group()
+            # print(text_lines[i])
+            names.append(text_lines[i])
+            c += 1
+    if len(names) > 0:
+        fname = names[0]
+
+    if len(names) > 1:
+        name = names[1]
+
+    output_dict = {}
+    output_dict['User_name'] = text_clean(name)
+    output_dict['Fathers_name'] = text_clean(fname)
+    output_dict['Date_of_Birth'] = text_clean(dob)
+    output_dict['Pan_Number'] = text_clean(pan)
+    
+    json_object = json.dumps(output_dict, indent=4)
+    return json_object
+
