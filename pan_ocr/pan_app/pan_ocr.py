@@ -6,12 +6,22 @@ import json
 import cv2
 import re
 
-import tensorflow as tf
-import keras
-from keras_retinanet import models
-from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
-from keras_retinanet.utils.visualization import draw_box, draw_caption
-from keras_retinanet.utils.colors import label_color
+
+kerasNotFound = False
+try:
+    import tensorflow as tf
+    import keras
+    from keras_retinanet import models
+    from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
+    from keras_retinanet.utils.visualization import draw_box, draw_caption
+    from keras_retinanet.utils.colors import label_color
+except ImportError as e:
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print("keras_retinanet package NOT found.")
+    print("Automatically switching to preprocessing will be disabled")
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    kerasNotFound = True
+
 
 from image_processing import img_inference
 
@@ -64,7 +74,7 @@ def pan_ocr(img, model=None):
 
     Pan_type, idx_date, dob, idx_pan, pan = check_date_pan(text_lines_words)
     
-    if (idx_date == -1 and idx_pan == -1):
+    if (kerasNotFound == False and idx_date == -1 and idx_pan == -1):
         print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         print("NOT found date or PAN. Automatically switching to preprocessing")
         print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
