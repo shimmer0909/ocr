@@ -13,10 +13,10 @@ try:
     import tensorflow as tf
     import keras
     from keras_retinanet import *
-#    from keras_retinanet import models
-#    from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
-#    from keras_retinanet.utils.visualization import draw_box, draw_caption
-#    from keras_retinanet.utils.colors import label_color
+    from keras_retinanet import models
+    from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
+    from keras_retinanet.utils.visualization import draw_box, draw_caption
+    from keras_retinanet.utils.colors import label_color
 except ImportError as e:
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     print("keras_retinanet package NOT found.")
@@ -51,19 +51,19 @@ def get_session():
 def load_retinanet_model():
     if kerasNotFound == True:
         return None
-#    MODEL_PATH = 'model/resnet50_csv_14.h5'
-#    print('Downloaded pretrained model to ' + MODEL_PATH)
-#
-#    # keras.backend.tensorflow_backend.set_session(get_session())
-#
-#    CLASSES_FILE = 'model/classes.csv'
-#    model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
-#    # print(model_path)
-#
-#    # load retinanet model
-#    model = models.load_model(model_path, backbone_name='resnet50')
-#    model = models.convert_model(model)
-#    return model
+    MODEL_PATH = 'model/resnet50_csv_14.h5'
+    print('Downloaded pretrained model to ' + MODEL_PATH)
+
+    # keras.backend.tensorflow_backend.set_session(get_session())
+
+    CLASSES_FILE = 'model/classes.csv'
+    model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
+    # print(model_path)
+
+    # load retinanet model
+    model = models.load_model(model_path, backbone_name='resnet50')
+    model = models.convert_model(model)
+    return model
 
 def pan_ocr(img, model=None):
     text_line_words = []

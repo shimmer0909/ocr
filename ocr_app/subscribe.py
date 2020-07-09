@@ -28,12 +28,12 @@ def callback(ch, method, properties, body):
         db = connect_db()
         rec = getById(db,objId)
         
-        if rec != None and ('type' in rec) and rec['type'] == 'pan':
+        if rec is not None and ('type' in rec) and rec['type'] == 'pan':
         
             pan_empty = not bool(rec['pan_data'])
             if(pan_empty):
                 image = url_to_image(rec['fileUrl'])
-                if image != None:
+                if image is not None:
                     pan_data = pan_ocr(image, model)
 
                     print(pan_data)
