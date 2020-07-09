@@ -29,28 +29,31 @@ def callback(ch, method, properties, body):
         rec = getById(db,objId)
         
         if rec != None and ('type' in rec) and rec['type'] == 'pan':
+        
             pan_empty = not bool(rec['pan_data'])
             if(pan_empty):
                 image = url_to_image(rec['fileUrl'])
-                pan_data = pan_ocr(image, model)
-                
-                print(pan_data)
-                
-                stored_data = save_pan_data(db,objId,pan_data)
-                
-                if 'callbackUrl' in rec:
-                    callbackUrl = rec['callbackUrl']
-#                    print(callbackUrl)
-                post_data = {'transactionId': str(rec['_id'])}
-                
-                json_str = json.dumps(post_data, indent=4)
+                if image != None:
+                    pan_data = pan_ocr(image, model)
 
-                response = requests.post(callbackUrl, data=json_str)
-                content = response.content
+                    print(pan_data)
+
+                    stored_data = save_pan_data(db,objId,pan_data)
+
+                    if 'callbackUrl' in rec:
+                        callbackUrl = rec['callbackUrl']
+    #                    print(callbackUrl)
+                    post_data = {'transactionId': str(rec['_id'])}
+
+                    json_str = json.dumps(post_data, indent=4)
+
+                    response = requests.post(callbackUrl, data=json_str)
+                    content = response.content
                 
         channel.basic_ack(delivery_tag=method.delivery_tag)
     except:
-        print('error in RebbitMQ subscriber')
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+        print('error in RabbitMQ subscriber')
 #    getData(db)
 
 channel.basic_consume('ocr_queue', callback)

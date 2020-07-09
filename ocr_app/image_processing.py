@@ -6,12 +6,19 @@ import cv2
 import numpy as np
 from scipy import ndimage
 
-
-from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
-from keras_retinanet.utils.visualization import draw_box, draw_caption
-from keras_retinanet.utils.colors import label_color
-from keras_retinanet import models
-
+kerasNotFound = False
+try:
+    from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
+    from keras_retinanet.utils.visualization import draw_box, draw_caption
+    from keras_retinanet.utils.colors import label_color
+    from keras_retinanet import models
+except ImportError as e:
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print("keras_retinanet package NOT found.")
+    print("Automatically switching to preprocessing will be disabled")
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    kerasNotFound = True
+    
 def img_inference_direct(img_infer):
     img_infer = read_image_bgr(img_infer)
     img = img_infer.copy()
@@ -26,7 +33,7 @@ def img_inference_direct(img_infer):
 
 
 def img_inference(img_infer, model):
-
+    
     THRES_SCORE = 0.95
     draw = img_infer
     image = img_infer

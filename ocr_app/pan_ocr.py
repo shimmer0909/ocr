@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import pandas
 import json
+import urllib.request
 import cv2
 import re
 
@@ -11,10 +12,11 @@ kerasNotFound = False
 try:
     import tensorflow as tf
     import keras
-    from keras_retinanet import models
-    from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
-    from keras_retinanet.utils.visualization import draw_box, draw_caption
-    from keras_retinanet.utils.colors import label_color
+    from keras_retinanet import *
+#    from keras_retinanet import models
+#    from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
+#    from keras_retinanet.utils.visualization import draw_box, draw_caption
+#    from keras_retinanet.utils.colors import label_color
 except ImportError as e:
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     print("keras_retinanet package NOT found.")
@@ -28,18 +30,17 @@ from image_processing import img_inference
 #from ocr_app.text_processing import lines, check_date_pan
 from text_processing import lines, check_date_pan, text_clean
 
-# import the necessary packages
-import urllib.request
-
 # METHOD #1: OpenCV, NumPy, and urllib
 def url_to_image(url):
-	# download the image, convert it to a NumPy array, and then read
-	# it into OpenCV format
-	resp = urllib.request.urlopen(url)
-	image = np.asarray(bytearray(resp.read()), dtype="uint8")
-	image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-	# return the image
-	return image
+    try:
+        resp = urllib.request.urlopen(url)
+        image = np.asarray(bytearray(resp.read()), dtype="uint8")
+        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        # return the image
+        return image
+    except:
+        print("Error in loading/converting url to image, try with a valid url")
+        return None
 
 
 def get_session():
@@ -48,19 +49,21 @@ def get_session():
     return tf.Session(config=config)
     
 def load_retinanet_model():
-    MODEL_PATH = 'model/resnet50_csv_14.h5'
-    print('Downloaded pretrained model to ' + MODEL_PATH)
-
-    # keras.backend.tensorflow_backend.set_session(get_session())
-
-    CLASSES_FILE = 'model/classes.csv'
-    model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
-    # print(model_path)
-
-    # load retinanet model
-    model = models.load_model(model_path, backbone_name='resnet50')
-    model = models.convert_model(model)
-    return model
+    if kerasNotFound == True:
+        return None
+#    MODEL_PATH = 'model/resnet50_csv_14.h5'
+#    print('Downloaded pretrained model to ' + MODEL_PATH)
+#
+#    # keras.backend.tensorflow_backend.set_session(get_session())
+#
+#    CLASSES_FILE = 'model/classes.csv'
+#    model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
+#    # print(model_path)
+#
+#    # load retinanet model
+#    model = models.load_model(model_path, backbone_name='resnet50')
+#    model = models.convert_model(model)
+#    return model
 
 def pan_ocr(img, model=None):
     text_line_words = []

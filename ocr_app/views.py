@@ -10,8 +10,8 @@ from django.conf import settings
 import json
 from django.http import HttpResponse
 
-from pan_app.db import connect_db, save_request, find_id, getById
-from pan_app.publish import publish
+from ocr_app.db import connect_db, save_request, find_id, getById
+from ocr_app.publish import publish
 
 
 @api_view(["POST"])
