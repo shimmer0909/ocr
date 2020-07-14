@@ -10,7 +10,7 @@ from django.conf import settings
 import json
 from django.http import HttpResponse
 
-from ocr_app.db import connect_db, save_request, find_id, getById
+from ocr_app.db import connect_db, save_request, find_id, getById, updateStatus
 from ocr_app.publish import publish
 
 
@@ -20,7 +20,6 @@ def ocr(panimg):
     try:
         img = ""
         rqst=json.loads(panimg.body)
-        
         if ('fileUrl' in rqst):
             fileUrl = rqst['fileUrl']
         if ('type' in rqst):

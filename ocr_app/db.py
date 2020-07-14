@@ -17,7 +17,11 @@ def save_request(db, rqst):
         'fileUrl':rqst['fileUrl'],
         'type':rqst['type'],
         'callbackUrl':rqst['callbackUrl'],
-        'pan_data':{}
+        'pan_data':{},
+        'status':'initiated',
+        'process_time':'null',
+        'start_time':'null',
+        'date':'null'
     }
     return db.pan_records.insert_one(post_data).inserted_id
     
@@ -36,4 +40,8 @@ def getData(db):
     for x in db.pan_records.find():
         print(x)
         
-        
+def updateStatus(db, _id, status):
+    return db.pan_records.update_one({"_id": ObjectId(_id)}, {"$set": {'status':status}})
+
+def updateProcessTime(db, _id, processTime, startTime, Date):
+    return db.pan_records.update({"_id": ObjectId(_id)}, {"$set": {'process_time':processTime,'start_time':startTime,'date':Date}})
