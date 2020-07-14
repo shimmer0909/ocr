@@ -21,7 +21,7 @@ def save_request(db, rqst):
         'status':'initiated',
         'process_time':'null',
         'start_time':'null',
-        'date':'null'
+        'created at':'null'
     }
     return db.pan_records.insert_one(post_data).inserted_id
     
@@ -44,4 +44,4 @@ def updateStatus(db, _id, status):
     return db.pan_records.update_one({"_id": ObjectId(_id)}, {"$set": {'status':status}})
 
 def updateProcessTime(db, _id, processTime, startTime, Date):
-    return db.pan_records.update({"_id": ObjectId(_id)}, {"$set": {'process_time':processTime,'start_time':startTime,'date':Date}})
+    return db.pan_records.update({"_id": ObjectId(_id)}, {"$set": {'process_time':processTime,'start_time':startTime,'created at':Date}})
