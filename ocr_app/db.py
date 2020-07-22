@@ -13,16 +13,18 @@ def connect_db():
     
 def save_request(db, rqst):
 #    posts = db.posts
+    
     post_data = {
         'fileUrl':rqst['fileUrl'],
         'type':rqst['type'],
-        'callbackUrl':rqst['callbackUrl'],
         'pan_data':{},
         'status':'initiated',
         'process_time':'null',
         'start_time':'null',
         'created at':'null'
     }
+    if ('callbackUrl' in rqst):
+        post_data['callbackUrl'] = rqst['callbackUrl']
     return db.pan_records.insert_one(post_data).inserted_id
     
     

@@ -40,26 +40,40 @@ def ocr(panimg):
     except ValueError as e:
         return Response(e.args[0],status.HTTP_400_BAD_REQUEST)
 
-@api_view(["POST"])
+@api_view(["GET"])
 def getProcessedDoc(rqst):
+    print("rqst",rqst)
     try:
-        rqstDict=json.loads(rqst.body)
-        transactionId = rqstDict['transactionId']
-        print(transactionId)
+        transactionId = rqst.GET.get('transactionId', '')
+        #rqstDict=json.loads(rqst.body)
+        #print("rqstDict: ",rqstDict)
+        #transactionId = rqstDict['transactionId']
+        print("getProcessedDoc for transaction id:", transactionId)
         
         db = connect_db()
         data = getById(db, transactionId)
-        if data:
-            panData = data['pan_data']
-            jsonObject = json.loads(panData)
-            print(jsonObject)
-            return JsonResponse(jsonObject,safe=False)
-
+        responseDict={}
+        jsonObject={}
+        print(data)
+        if data['pan_data']:
+            print("getById: pan_data",data['pan_data'])
+            responseDict['status'] = str(data['status'])
+            #responseDict['transactionId'] = str(rqstDict['transactionId'])
+            responseDict['transactionId'] = str(transactionId)
+            responseDict['data'] = (data['pan_data'])
+            print("responseDict",responseDict)
+            jsonObject = json.loads(json.dumps(responseDict, indent=4))
+            #jsonObject = responseDict #json.dumps(responseDict)
+            #print("jsonObject type:",type(jsonObject))
         else:
-            errorDict = { 'status' : 'Returned data is under process or error' }
-            jsonStr = json.dumps(errorDict, sort_keys=True)
-            jsonObject = json.loads(jsonStr)
-            return JsonResponse(jsonObject,safe=False)
+            print("getById: returned no data")
+            responseDict['status'] = 'Returned data is under process or error'
+            jsonObject = json.loads(json.dumps(responseDict, indent=4))
+            #jsonStr = json.dumps(responseDict, sort_keys=True)
+            #jsonObject = json.loads(jsonStr)
+
+        return JsonResponse(jsonObject,safe=False)
 
     except ValueError as e:
         return Response(e.args[0],status.HTTP_400_BAD_REQUEST)
+

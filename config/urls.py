@@ -1,4 +1,4 @@
-"""ocr URL Configuration
+""" ocrURL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.0/topics/http/urls/
@@ -19,6 +19,6 @@ from ocr_app import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^pan_ocr/',views.ocr),
-    url(r'^getprocesseddoc/',views.getProcessedDoc)
+    url(r'^ocr/',views.ocr),
+    url(r'^processedDoc/$',views.getProcessedDoc, name='processedDoc')
 ]

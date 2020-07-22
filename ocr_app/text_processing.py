@@ -1,15 +1,18 @@
-from dateutil.parser import parse
+#from dateutil.parser import parse
 import pytesseract
 import re
  
 
 def OCR(img):
+    print("Inside OCR")
     config = ("-l eng --oem 1 --psm 6")
     text = pytesseract.image_to_string(img, config=config)
+    print("text:",text)
     text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
     return text 
     
 def lines(crop_img, crop=True):
+    print("Inside lines")
     if(crop):
         (H1, W1) = crop_img.shape[:2]
         startX = 0
@@ -24,37 +27,42 @@ def lines(crop_img, crop=True):
         text = OCR(roi)
     else:
         text = OCR(crop_img)
+    print(text)
 
-    text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
+#    text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
     
     #print(text)
     text = text.splitlines()
     
     text2 = []
-    for i in text:
-        temp = i.split()
+    for i in range(len(text)):
+        line = text[i]
+        line = "".join([c if ord(c) < 128 else "" for c in line]).strip()
+        text[i] = line
+        temp = line.split()
         text2.append(temp)
+    print("Reached end of lines")
     return text, text2
 
 
 
-def is_date1(string, fuzzy=False):
+#def is_date1(string, fuzzy=False):
     """
     Return whether the string can be interpreted as a date.
 
     :param string: str, string to check for date
     :param fuzzy: bool, ignore unknown tokens in string if True
     """
-    try:
-        parse(string, fuzzy=fuzzy)
-        return True
+#    try:
+#        parse(string, fuzzy=fuzzy)
+#        return True
 
-    except ValueError:
-        return False
+#    except ValueError:
+#        return False
 
 def is_pan(string):
     #print("Inside is_pan")
-    PAN = re.search('[A-Z0-9]+',string)
+    PAN = re.search('[A-Z0]{5}[0-9O]{4}[A-Z]',string)
     if(PAN and len(PAN.group()) ==10):
         return True, PAN.group()
     else:

@@ -72,11 +72,13 @@ def pan_ocr(img, model=None):
     fname = ''
     dob = ''
     pan = ''
-
+    print("inside pan_ocr")
     text_lines, text_lines_words = lines(img, False)
+    print(text_lines)
 
     Pan_type, idx_date, dob, idx_pan, pan = check_date_pan(text_lines_words)
-    
+    print(dob,pan)
+
     if (kerasNotFound == False and idx_date == -1 and idx_pan == -1):
         print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         print("NOT found date or PAN. Automatically switching to preprocessing")
@@ -99,13 +101,17 @@ def pan_ocr(img, model=None):
     c = 0
     names = []
     for i in range(idx_date - 1, -1, -1):
-        capital_str = re.search('[A-Z\s]+', text_lines[i])
+        capital_str = re.search('^[A-Z]+[A-Z\s]+[A-Z]', text_lines[i])
         # if text_lines[i].isupper() and c<2:
-        if capital_str and c < 2:
-            text_lines[i] = capital_str.group()
-            # print(text_lines[i])
-            names.append(text_lines[i])
-            c += 1
+   
+        if capital_str is not None:
+            print("LINES PARSING:",capital_str)
+
+            if (c < 2):
+                text_lines[i] = capital_str.group()
+                # print(text_lines[i])
+                names.append(text_lines[i])
+                c += 1
     if len(names) > 0:
         fname = names[0]
 
@@ -113,10 +119,10 @@ def pan_ocr(img, model=None):
         name = names[1]
 
     output_dict = {}
-    output_dict['User_name'] = text_clean(name)
-    output_dict['Fathers_name'] = text_clean(fname)
-    output_dict['Date_of_Birth'] = text_clean(dob)
-    output_dict['Pan_Number'] = text_clean(pan)
+    output_dict['name_on_card'] = text_clean(name)
+    output_dict['fathers_name'] = text_clean(fname)
+    output_dict['date_on_card'] = text_clean(dob)
+    output_dict['pan_number'] = text_clean(pan)
     
     json_object = json.dumps(output_dict, indent=4)
     return json_object
