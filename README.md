@@ -3,6 +3,7 @@ Usage:
 1.copy the pre-trained model from https://drive.google.com/file/d/1-xjWwbSH79ZZApdAyhTATuiPRCooEK2o/view?usp=sharing to ocr/ocr_app/model folder
 
 2.Install tesseract 4.1.x from https://notesalexp.org/tesseract-ocr/
+  Install ghostscript using sudo apt install ghostscript 
 
 3.cd ocr
   python manage.py runserver
