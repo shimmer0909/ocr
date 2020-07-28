@@ -19,6 +19,7 @@ def save_request(db, rqst):
         'type':rqst['type'],
         'pan_data':{},
         'status':'initiated',
+        'error':'None',
         'process_time':'null',
         'start_time':'null',
         'created at':'null'
@@ -44,6 +45,9 @@ def getData(db):
         
 def updateStatus(db, _id, status):
     return db.pan_records.update_one({"_id": ObjectId(_id)}, {"$set": {'status':status}})
+
+def updateError(db, _id, error):
+    return db.pan_records.update_one({"_id": ObjectId(_id)}, {"$set": {'error':error}})
 
 def updateProcessTime(db, _id, processTime, startTime, Date):
     return db.pan_records.update({"_id": ObjectId(_id)}, {"$set": {'process_time':processTime,'start_time':startTime,'created at':Date}})
