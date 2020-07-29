@@ -14,7 +14,7 @@ RABBIT_MQ["PASSWORD"] = "test123"
 
 
 
-MONGO["DBNAME"] = 'arya-dev'
+MONGO["DBNAME"] = 'pan_ocr_database'
 MONGO["HOST"] = 'cluster0-jfb0t.mongodb.net'
 MONGO["USER"] = 'dev-user'
 MONGO["PASSWORD"] = 'indifi123'
