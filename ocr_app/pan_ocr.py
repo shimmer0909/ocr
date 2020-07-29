@@ -144,7 +144,7 @@ def pan_ocr(img, model=None):
         if (model == None):
             print("loading model")
             model = load_retinanet_model()
-       
+        
         b, img = img_inference(img, model)
         img = img[b[1]:b[3], b[0]:b[2]]
         (H1, W1) = img.shape[:2]

@@ -60,6 +60,7 @@ def img_inference(img_infer, model):
     boxes /= scale
 
     output_dict = {}
+    b = None
     # visualize detections
     for box, score, label in zip(boxes[0], scores[0], labels[0]):
         if score < THRES_SCORE:

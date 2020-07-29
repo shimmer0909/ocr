@@ -1,66 +1,56 @@
+import sys
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.stage')
+
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+sys.path.append(project_root)
+
+django.setup()
+
+from django.conf import settings
+
 import pika
 from bson.objectid import ObjectId
-from db import *
+from db import MongoDb
+Mongo = MongoDb()
+
 from pan_ocr import url_to_image, pan_ocr, load_retinanet_model
-from datetime import date 
-from time import process_time 
+from datetime import datetime
 import requests
 import json
-import os
-import argparse
 
-
-import sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-
-sys.path.insert(0,parentdir) 
-from config.settings.stage import *
-
-rabbit_settings = RABBIT_MQ
-db_settings = MONGO
-model_path = MODEL_PATH
-model_name = MODEL_NAME
-
-if rabbit_settings is None:
+if settings.RABBIT_MQ is None:
     raise ValueError("No settings found")
 
-
-credentials = pika.PlainCredentials(rabbit_settings.get('USER_NAME'), rabbit_settings.get('PASSWORD'))
+credentials = pika.PlainCredentials(settings.RABBIT_MQ.get('USER_NAME'), settings.RABBIT_MQ.get('PASSWORD'))
 connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=rabbit_settings.get('HOST'),
-        port=rabbit_settings.get('PORT'),
-        credentials=credentials,
-#        heartbeat_interval=rabbit_settings.get("HEARTBEAT")
+        host=settings.RABBIT_MQ.get('HOST'),
+        port=settings.RABBIT_MQ.get('PORT'),
+        credentials=credentials
     ))
 
 if (connection):
-    print ("connection to RabbitmQ at {} successful".format(rabbit_settings.get('HOST')))
+    print ("connection to RabbitmQ at {} successful".format(settings.RABBIT_MQ.get('HOST')))
 else:
-     print ("connection to RabbitmQ at {} FAILED".format(rabbit_settings.get('HOST')))
+    print ("connection to RabbitmQ at {} FAILED".format(settings.RABBIT_MQ.get('HOST')))
     
 channel = connection.channel()
 channel.queue_declare(queue='ocr_queue',  durable=True)
 
 
-model = load_retinanet_model(model_name, model_path)
+model = load_retinanet_model(settings.MODEL_NAME, settings.MODEL_PATH)
 
 
 def callback_rabbitMQ(ch, method, properties, body):
     try:
-        t1_start = process_time() 
+        t1_start = datetime.now()
         objId = body.decode()
         print("RabbitMQ Received %r" % objId)
-        
-        db = connect_db_conf(db_settings.get('USER'), db_settings.get('HOST'), db_settings.get('PASSWORD'), db_settings.get('DBNAME'))
-    
-        if (db):
-            print ("connection to DB at {} successful".format(db_settings.get('HOST')))
-        else:
-             print ("connection to DB at {} FAILED".format(db_settings.get('HOST')))
-    
-        status = updateStatus(db,objId,'in_process')
-        rec = getById(db,objId)
+            
+        status = Mongo.updateStatus(objId, 'in_process')
+        rec = Mongo.getById(objId)
         
         if rec is not None and ('type' in rec) and rec['type'] == 'pan':
             pan_data = ''
@@ -70,12 +60,11 @@ def callback_rabbitMQ(ch, method, properties, body):
                 if image is not None:
                     pan_data, empty = pan_ocr(image, model)
 
-                    print(pan_data)
-                    stored_data = save_pan_data(db,objId,pan_data)
+                    stored_data = Mongo.save_pan_data(objId, pan_data)
                     
                     if empty == 1:
-                        status = updateStatus(db,objId,'error')
-                        error = updateError(db,objId,'image quality not apt for parsing')
+                        status = Mongo.updateStatus(objId, 'error')
+                        error = Mongo.updateError(objId, 'image quality not apt for parsing')
                     
                     elif empty == 0:
                         try:
@@ -88,15 +77,14 @@ def callback_rabbitMQ(ch, method, properties, body):
                                 content = response.content
                         except Exception as e:
                             print("callback URL failed: ",e)
-                            error = updateError(db,objId,'callback URL failed')
+                            error = Mongo.updateError(objId, 'callback URL failed')
 
                         pan_data = json.loads(pan_data)
                         
-                        save_pan_data(db,objId,pan_data)
-                        status = updateStatus(db,objId,'success')
+                        Mongo.save_pan_data(objId, pan_data)
+                        status = Mongo.updateStatus(objId, 'success')
                     try:
                         if(isPDF):
-                            print("deleting downloded pdf and it's converted jpg file")
                             if(pdfFile != ''):
                                 os.remove(pdfFile)
                             if(jpgFile != ''):
@@ -105,20 +93,18 @@ def callback_rabbitMQ(ch, method, properties, body):
                         print("failed to delete downloded pdf and it's converted jpg file: ", e)
                 else:
                     print("ERROR: Failed to load image")
-                    status = updateStatus(db,objId,'error')
-                    error = updateError(db,objId,'failed to load image')
+                    status = Mongo.updateStatus(objId,'error')
+                    error = Mongo.updateError(objId,'failed to load image')
         
-        t1_stop = process_time() 
-        processTime = str(t1_stop-t1_start)
-        today = str(date.today())
+        processTime = str(datetime.now() - t1_start)
 
-        updateProcessTime(db, objId, processTime, str(t1_start), today) 
-        data = getById(db, str(rec['_id']))
+        Mongo.updateProcessTime(objId, processTime, t1_start, datetime.now())
+        data = Mongo.getById(str(rec['_id']))
         channel.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
         print('error in RabbitMQ subscriber: ',e)
-        status = updateStatus(db,objId,'error')
-        error = updateError(db,objId,'error in RabbitMQ subscriber')
+        status = Mongo.updateStatus(objId, 'error')
+        error = Mongo.updateError(objId, 'error in RabbitMQ subscriber')
         channel.basic_ack(delivery_tag=method.delivery_tag)
 
 channel.basic_consume('ocr_queue', callback_rabbitMQ)
