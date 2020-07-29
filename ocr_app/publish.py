@@ -13,7 +13,7 @@ def publish(data):
                 host=rabbit_settings.get('HOST'),
                 port=rabbit_settings.get('PORT'),
                 credentials=credentials,
-                heartbeat_interval=rabbit_settings.get("HEARTBEAT")
+#                heartbeat_interval=rabbit_settings.get("HEARTBEAT")
             ))
         
 #        connection = pika.BlockingConnection(pika.ConnectionParameters(

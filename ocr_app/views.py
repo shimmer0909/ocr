@@ -10,7 +10,7 @@ from django.conf import settings
 import json
 from django.http import HttpResponse
 
-from ocr_app.db import connect_db, save_request, find_id, getById, updateStatus, updateError
+from ocr_app.db import connect_db, save_request, find_id, getById, updateStatus, updateError, connect_db_conf
 from ocr_app.publish import publish
 
 db_settings = getattr(settings, "MONGO", None)
@@ -102,7 +102,8 @@ def getProcessedDoc(rqst):
         return JsonResponse(jsonObject,safe=False)
 
     except ValueError as e:
-        error = updateError(db,transactionId,e)
+        print("e : ", e)
+        error = updateError(db,transactionId,str(e)
         return Response(e.args[0],status.HTTP_400_BAD_REQUEST)
 
 #errmsg:invalid transaction id
