@@ -103,7 +103,7 @@ def getProcessedDoc(rqst):
 
     except ValueError as e:
         print("e : ", e)
-        error = updateError(db,transactionId,str(e)
+        error = updateError(db,transactionId,str(e))
         return Response(e.args[0],status.HTTP_400_BAD_REQUEST)
 
 #errmsg:invalid transaction id

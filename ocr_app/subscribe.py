@@ -47,7 +47,7 @@ channel = connection.channel()
 channel.queue_declare(queue='ocr_queue',  durable=True)
 
 
-model = load_retinanet_model(model_name, ,model_path)
+model = load_retinanet_model(model_name, model_path)
 
 
 def callback_rabbitMQ(ch, method, properties, body):

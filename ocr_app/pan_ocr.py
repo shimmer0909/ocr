@@ -122,7 +122,7 @@ def load_retinanet_model(model_name, model_path=None):
         MODEL_PATH = 'model/resnet50_csv_14.h5'
         print('Downloaded pretrained model to ' + MODEL_PATH)
 
-         keras.backend.tensorflow_backend.set_session(get_session())
+        keras.backend.tensorflow_backend.set_session(get_session())
 
         CLASSES_FILE = 'model/classes.csv'
         model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
