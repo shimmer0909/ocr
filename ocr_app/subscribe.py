@@ -7,30 +7,60 @@ from time import process_time
 import requests
 import json
 import os
+import argparse
 
+
+import sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+
+sys.path.insert(0,parentdir) 
+from config.settings.stage import *
+
+rabbit_settings = RABBIT_MQ
+db_settings = MONGO
+
+#from django.conf import settings
+#
+#rabbit_settings = getattr(settings, "RABBIT_MQ", None)
+if rabbit_settings is None:
+    raise ValueError("No settings found")
+
+
+credentials = pika.PlainCredentials(rabbit_settings.get('USER_NAME'), rabbit_settings.get('PASSWORD'))
 connection = pika.BlockingConnection(pika.ConnectionParameters(
-            host="3.7.61.186",
-            port=5672,
-            credentials=pika.PlainCredentials("indifi","test123"),
-#            heartbeat_interval='60'
-        ))
+        host=rabbit_settings.get('HOST'),
+        port=rabbit_settings.get('PORT'),
+        credentials=credentials,
+#        heartbeat_interval=rabbit_settings.get("HEARTBEAT")
+    ))
+
 if (connection):
-    print ("connection to RabbitmQ at 3.7.61.186 successful" )
+    print ("connection to RabbitmQ at {} successful".format(rabbit_settings.get('HOST')))
 else:
-    print ("connection to RabbitmQ at 3.7.61.186 FAILED" )
+     print ("connection to RabbitmQ at {} FAILED".format(rabbit_settings.get('HOST')))
     
 #connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
 channel.queue_declare(queue='ocr_queue',  durable=True)
+
+
 model = load_retinanet_model()
 
 
-def callback(ch, method, properties, body):
+def callback_rabbitMQ(ch, method, properties, body):
     try:
         t1_start = process_time() 
         objId = body.decode()
         print("RabbitMQ Received %r" % objId)
-        db = connect_db()
+#        db = connect_db()
+        db = connect_db_conf(db_settings.get('USER'), db_settings.get('HOST'), db_settings.get('PASSWORD'), db_settings.get('DBNAME'))
+    
+        if (db):
+            print ("connection to DB at {} successful".format(db_settings.get('HOST')))
+        else:
+             print ("connection to DB at {} FAILED".format(db_settings.get('HOST')))
+    
         status = updateStatus(db,objId,'in_process')
         rec = getById(db,objId)
         
@@ -38,8 +68,8 @@ def callback(ch, method, properties, body):
             pan_data = ''
             pan_empty = not bool(rec['pan_data'])
             if(pan_empty):
-                print(rec['fileUrl'])
-                image, isPDF, pdfFile, jpgFile = url_to_image(rec['fileUrl'],rec['_id'])
+                print(rec['file_url'])
+                image, isPDF, pdfFile, jpgFile = url_to_image(rec['file_url'],rec['_id'])
                 if image is not None:
                     print("image is not empty")
                     pan_data, empty = pan_ocr(image, model)
@@ -54,16 +84,16 @@ def callback(ch, method, properties, body):
                     
                     elif empty == 0:
                         try:
-                            if 'callbackUrl' in rec:
-                                callbackUrl = rec['callbackUrl']
-                                print(callbackUrl)
+                            if 'callback_url' in rec:
+                                callback_url = rec['callback_url']
+                                print(callback_url)
                                 post_data = {'transactionId': str(rec['_id'])}
                                 print(post_data)
                                 json_str = json.dumps(post_data, indent=4)
                                 print(json_str)
 
-                                #response = requests.post(callbackUrl, data=json_str)
-                                response = requests.get(callbackUrl, params=post_data)
+                                #response = requests.post(callback_url, data=json_str)
+                                response = requests.get(callback_url, params=post_data)
                                 print("responsei from callback URL: ",response)
                                 content = response.content
                                 #print(content)
@@ -107,14 +137,14 @@ def callback(ch, method, properties, body):
         data = getById(db, str(rec['_id']))
         print(data)
         channel.basic_ack(delivery_tag=method.delivery_tag)
-    except:
+    except Exception as e:
         status = updateStatus(db,objId,'error')
         error = updateError(db,objId,'error in RabbitMQ subscriber')
         channel.basic_ack(delivery_tag=method.delivery_tag)
-        print('error in RabbitMQ subscriber')
+        print('error in RabbitMQ subscriber: ',e)
 #    getData(db)
 
-channel.basic_consume('ocr_queue', callback)
+channel.basic_consume('ocr_queue', callback_rabbitMQ)
 print(' [*] Waiting for messages. To exit press CTRL+C')
 
 channel.start_consuming()

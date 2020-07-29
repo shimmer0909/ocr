@@ -25,7 +25,7 @@ SECRET_KEY = 'e)@y45%%zup(st!v)f78z1k#@(dsfkw5+df5w%zem%&#+_p34x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['35.244.40.169']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -120,4 +120,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+
+RABBIT_MQ = {
+    "HOST": "127.0.0.1",
+    "PORT": 5672,
+    "USER_NAME": "guest",
+    "PASSWORD": "guest",
+    "HEARTBEAT": 60
+}
+
+MONGO = {
+    "DBNAME": 'test',
+    "HOST": 'localhost:27017',
+    "USER": 'guest',
+    "PASSWORD": 'guest',
+}
+
+CATCH_UNKNOWN_EXCEPTION = False

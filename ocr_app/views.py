@@ -13,6 +13,10 @@ from django.http import HttpResponse
 from ocr_app.db import connect_db, save_request, find_id, getById, updateStatus, updateError
 from ocr_app.publish import publish
 
+db_settings = getattr(settings, "MONGO", None)
+if db_settings is None:
+    raise ValueError("No settings found")
+print("db_settings: ",db_settings)
 
 @api_view(["POST"])
 
@@ -20,14 +24,17 @@ def ocr(panimg):
     try:
         img = ""
         rqst=json.loads(panimg.body)
-        if ('fileUrl' in rqst):
-            fileUrl = rqst['fileUrl']
+        print("OCR request", rqst)
+        if ('file_url' in rqst):
+            file_url = rqst['file_url']
         if ('type' in rqst):
             type = rqst['type']
-        if ('callbackUrl' in rqst):
-            callbackUrl = rqst['callbackUrl']
+        if ('callback_url' in rqst):
+            callback_url = rqst['callback_url']
         
-        db = connect_db()
+#        db = connect_db()
+        db = connect_db_conf(db_settings.get('USER'), db_settings.get('HOST'), db_settings.get('PASSWORD'), db_settings.get('DBNAME'))
+    
                 
         id = save_request(db, rqst)
         publish(str(id))
@@ -51,7 +58,9 @@ def getProcessedDoc(rqst):
         #transactionId = rqstDict['transactionId']
         print("getProcessedDoc for transaction id:", transactionId)
         
-        db = connect_db()
+#        db = connect_db()
+        db = connect_db_conf(db_settings.get('USER'), db_settings.get('HOST'), db_settings.get('PASSWORD'), db_settings.get('DBNAME'))
+    
         data = None
         responseDict={}
         jsonObject={}

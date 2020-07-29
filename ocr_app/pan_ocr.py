@@ -178,13 +178,23 @@ def pan_ocr(img, model=None):
         # if text_lines[i].isupper() and c<2:
    
         if capital_str is not None:
-            print("LINES PARSING:",capital_str)
-
             if (c < 2):
                 text_lines[i] = capital_str.group()
                 # print(text_lines[i])
                 names.append(text_lines[i])
                 c += 1
+                
+    print("dob: ",dob)
+    dd = dob[:2]
+    print(dd)
+    mm = dob[3:5]
+    print(mm)
+    yy = dob[6:]
+    print(yy)
+    
+    dob = yy +'-'+ mm +'-'+ dd
+    print("new dob: ",dob)
+    
     fname = ''
     name = ''
     if len(names) > 0:

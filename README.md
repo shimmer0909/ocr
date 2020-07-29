@@ -15,9 +15,9 @@ python subscribe.py
 6.API - http://x.y.z.q/pan_ocr/
   parameter:
   {
-  "fileUrl":"image url",
+  "file_url":"image url",
   "type":"pan",
-  "callbackUrl":"callback url"
+  "callback_url":"callback url"
   }
   
 7.API - http://x.y.z.q/getprocesseddoc/
