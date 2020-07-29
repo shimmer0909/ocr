@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import configparser
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,11 +24,25 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'e)@y45%%zup(st!v)f78z1k#@(dsfkw5+df5w%zem%&#+_p34x'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+config = configparser.ConfigParser()
 
+try:
+    CONFIG_FILE_DIR = BASE_DIR + '/config.ini'
+    config.read(CONFIG_FILE_DIR)
+    dev_config = config['development']
+except Exception as e:
+    dev_config = {
+        'DB_NAME': '',
+        'DB_USER': '',
+        'DB_PASSWORD': '',
+        'DB_HOST': '',
+        'REDIS_HOST': ''
+    }
+    
 # Application definition
 
 INSTALLED_APPS = [
