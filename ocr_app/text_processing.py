@@ -130,9 +130,7 @@ def check_date_pan(text2):
         return 2,idx_date,date,idx_pan,pan
 
 def text_clean(line):
-    print("inside text_clean")
     if line is not None:
-        print("inside if")
         line = line.strip()
         line = re.sub(' +', ' ', line)
     return line
