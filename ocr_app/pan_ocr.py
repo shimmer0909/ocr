@@ -23,6 +23,7 @@ try:
     from keras_retinanet.utils.visualization import draw_box, draw_caption
     from keras_retinanet.utils.colors import label_color
 except ImportError as e:
+    print("error in loading model: ",e)
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     print("keras_retinanet package NOT found.")
     print("Automatically switching to preprocessing will be disabled")
@@ -31,14 +32,12 @@ except ImportError as e:
 
 
 from image_processing import img_inference
-
-#from ocr_app.text_processing import lines, check_date_pan
 from text_processing import lines, check_date_pan, text_clean
 
 def pdf2jpeg(pdf_input_path, jpeg_output_path):
     try:
-        print("inside pdf2jpeg")
-        args = ["pdf2jpeg", # actual value doesn't matter
+        print("converting pdf to jpeg file")
+        args = ["pdf2jpeg", 
                 "-dNOPAUSE",
                 "-sDEVICE=jpeg",
                 "-r144",
@@ -48,22 +47,19 @@ def pdf2jpeg(pdf_input_path, jpeg_output_path):
         args = [a.encode(encoding) for a in args]
         ghostscript.Ghostscript(*args)
     except Exception as e:
-        print ("Failed in pfd2jpeg",e)
+        print ("Failed in pfd2jpeg: ",e)
         
 def checkPDF(url):
     r = requests.get(url)
     content_type = r.headers.get('content-type')
-    print('content_type',content_type)
     if 'application/pdf' in content_type:
         return True
     else:
         return False
 
 def downloadFile(url,folder,uuid):
-    
     print('Beginning file download with wget module')
     fileLoc = folder
-    print("fileLoc: ",fileLoc)
     try:
         if not os.path.exists(fileLoc):
             print("Inside if")
@@ -71,11 +67,8 @@ def downloadFile(url,folder,uuid):
     except Exception as e:
         print("could not make new directory: ", e)
         
-    print (os.path.abspath(fileLoc))
     fileLoc = os.path.abspath(fileLoc) + '/' + str(uuid)
     try:
-        print("url",url)
-        print("fileLoc",fileLoc)
         wget.download(str(url), fileLoc)
     except Exception as e:
         print('unable to download file correctly: ', e)
@@ -91,19 +84,16 @@ def url_to_image(url,uuid):
             print("URL is for a PDF")
             folder='downloads/'
             pdfFile = downloadFile(url, folder,str(uuid)+'.pdf')
-            print('pdfFile path',pdfFile)
             jpgPath = os.path.abspath(folder)+str(uuid)+'.jpg'
-            print("jpeg path", jpgPath)
             pdf2jpeg(pdfFile, jpgPath)
             image = cv2.imread(jpgPath)
             isPDF = True
         else:
-            print("Inside url_to_image")
+            print("converting url to image")
             resp = urllib.request.urlopen(url)
             image = np.asarray(bytearray(resp.read()), dtype="uint8")
-            print("Image in np.asarray: ",image)
             image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-        
+    
         return image, isPDF, pdfFile, jpgPath
     except:
         print("Error in loading/converting url to image, try with a valid url")
@@ -126,8 +116,6 @@ def load_retinanet_model(model_name, model_path=None):
 
         CLASSES_FILE = 'model/classes.csv'
         model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
-    
-    print('MODEL_PATH : ',model_path)
 
     # load retinanet model
     model = models.load_model(model_path+model_name, backbone_name='resnet50')
@@ -144,61 +132,41 @@ def pan_ocr(img, model=None):
     fname = ''
     dob = ''
     pan = ''
-    print("inside pan_ocr")
     text_lines, text_lines_words = lines(img, False)
-    print(text_lines)
 
     Pan_type, idx_date, dob, idx_pan, pan = check_date_pan(text_lines_words)
-    print(dob,pan)
 
     if (kerasNotFound == False and idx_date == -1 and idx_pan == -1):
         print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         print("NOT found date or PAN. Automatically switching to preprocessing")
         print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-#     if args["preprocess"] == 1 or (idx_date == -1 and idx_pan == -1 and args["auto"] == 1):
         if (model == None):
-            print("Inside if loading model")
+            print("loading model")
             model = load_retinanet_model()
-
-        # load label to names mapping for visualization purposes
-        #         labels_to_names = pandas.read_csv(CLASSES_FILE, header=None).T.loc[0].to_dict()
-#        (H, W) = img.shape[:2]
-#        if(H < 300 and W < 500):
-#            ratio = img.shape[0] / 420.0
-#            img = imutils.resize(img, height=420)
        
-        print("model",model)
         b, img = img_inference(img, model)
         img = img[b[1]:b[3], b[0]:b[2]]
         (H1, W1) = img.shape[:2]
 
         text_lines, text_lines_words = lines(img, False)
         Pan_type, idx_date, dob, idx_pan, pan = check_date_pan(text_lines_words)
-        print("Pan_type:",Pan_type)
+        
     c = 0
     names = []
     for i in range(idx_date - 1, -1, -1):
         capital_str = re.search('^[A-Z]+[A-Z\s]+[A-Z]', text_lines[i])
-        # if text_lines[i].isupper() and c<2:
    
         if capital_str is not None:
             if (c < 2):
                 text_lines[i] = capital_str.group()
-                # print(text_lines[i])
                 names.append(text_lines[i])
                 c += 1
                 
-    print("dob: ",dob)
     dd = dob[:2]
-    print(dd)
     mm = dob[3:5]
-    print(mm)
     yy = dob[6:]
-    print(yy)
-    
     dob = yy +'-'+ mm +'-'+ dd
-    print("new dob: ",dob)
     
     fname = ''
     name = ''

@@ -1,4 +1,3 @@
-#from dateutil.parser import parse
 import pytesseract
 from PIL import Image
 import re
@@ -6,16 +5,6 @@ import cv2
  
 
 def OCR(img):
-    print("Inside OCR")
-#    print(img_path) 
-#    try:
-#        img = cv2.imread(img_path)
-##        img = Image.open(img_path) 
-#        print(img)
-#        config = ("-l eng --oem 1 --psm 6")
-#        text = pytesseract.image_to_string(img, config=config)
-#    except Exception as e:
-#        print("can not open image: ", e)
     config = ("-l eng --oem 1 --psm 6")
     text = pytesseract.image_to_string(img, config=config)
     print("text:",text)
@@ -23,28 +12,18 @@ def OCR(img):
     return text 
     
 def lines(crop_img, crop=True):
-    print("Inside lines")
     if(crop):
         (H1, W1) = crop_img.shape[:2]
         startX = 0
         endX = int(W1 * .7)
-        startY = 0  # int(H1*.2)
+        startY = 0 
         endY = H1
         roi = crop_img[startY:endY, startX:endX]
-#    config = ("-l eng --oem 1 --psm 6")
-#    text = pytesseract.image_to_string(roi, config=config)
-#    text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
-#    print(text)
         text = OCR(roi)
     else:
         text = OCR(crop_img)
-    print(text)
-
-#    text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
-    
-    #print(text)
+        
     text = text.splitlines()
-    
     text2 = []
     for i in range(len(text)):
         line = text[i]
@@ -52,24 +31,7 @@ def lines(crop_img, crop=True):
         text[i] = line
         temp = line.split()
         text2.append(temp)
-    print("Reached end of lines")
     return text, text2
-
-
-
-#def is_date1(string, fuzzy=False):
-    """
-    Return whether the string can be interpreted as a date.
-
-    :param string: str, string to check for date
-    :param fuzzy: bool, ignore unknown tokens in string if True
-    """
-#    try:
-#        parse(string, fuzzy=fuzzy)
-#        return True
-
-#    except ValueError:
-#        return False
 
 def is_pan(string):
     PAN = re.search('[A-Z0125789]{5}[0-9ABIJOQSTUYZ]{4}[A-Z0125789]',string)
@@ -120,7 +82,6 @@ def is_date(string):
         return False
 
 def date_cleanup(date):  
-    print("inside cleanup: ",date)
     x = date[:1]
     y = date[1:3]
     z = date[3:4]
@@ -150,7 +111,6 @@ def check_date_pan(text2):
             if(is_date(word)):
                 date = word
                 idx_date = count
-                print(date)
                 
             isPan, PAN = is_pan(word)
             if isPan:
@@ -176,15 +136,3 @@ def text_clean(line):
         line = line.strip()
         line = re.sub(' +', ' ', line)
     return line
-
-#def clean_gibberish_text (text):
-#    # Cleaning all the gibberish text
-#    text = ftfy.fix_text(text)
-#    text = ftfy.fix_encoding(text)
-#    '''for god_damn in text:
-#        if nonsense(god_damn):
-#            text.remove(god_damn)
-#        else:
-#            print(text)'''
-#    # print(text)
-#    return text

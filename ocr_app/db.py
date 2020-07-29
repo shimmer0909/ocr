@@ -48,10 +48,6 @@ def find_id(db, url):
     
 def getById(db, _id):
     return db.pan_records.find_one({"_id": ObjectId(_id)})
-
-def getData(db):
-    for x in db.pan_records.find():
-        print(x)
         
 def updateStatus(db, _id, status):
     return db.pan_records.update_one({"_id": ObjectId(_id)}, {"$set": {'status':status}})

@@ -33,11 +33,9 @@ def img_inference_direct(img_infer):
 
 
 def img_inference(img_infer, model):
-    print("Inside inference")
     THRES_SCORE = 0.93
     draw = img_infer
     image = img_infer
-    ##################################################
 
     src_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     Threshold = 100
@@ -54,8 +52,7 @@ def img_inference(img_infer, model):
         if (median_angle % 90) - 90 > 5:
             image = ndimage.rotate(image, median_angle, reshape=True)
             draw = ndimage.rotate(draw, median_angle, reshape=True)
-    ##################################################
-    # preprocess image for network
+            
     image = preprocess_image(image)
     image, scale = resize_image(image)
     boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
@@ -65,15 +62,12 @@ def img_inference(img_infer, model):
     output_dict = {}
     # visualize detections
     for box, score, label in zip(boxes[0], scores[0], labels[0]):
-        # scores are sorted so we can break
-#        print("score",score)
         if score < THRES_SCORE:
             break
         color = label_color(label)
 
         b = box.astype(int)
         draw_box(draw, b, color=color)
-        print("b: ",b)
     return b, draw
 
 def rotate(image, angle, center = None, scale = 1.0):
