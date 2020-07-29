@@ -18,3 +18,6 @@ MONGO["DBNAME"] = 'pan_ocr_database'
 MONGO["HOST"] = 'cluster0-jfb0t.mongodb.net'
 MONGO["USER"] = 'dev-user'
 MONGO["PASSWORD"] = 'indifi123'
+
+MODEL_PATH = '/home/sushen_suri/ocr/ocr_app/model/'
+MODEL_NAME = 'resnet50_csv_14.h5'

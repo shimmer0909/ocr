@@ -19,6 +19,8 @@ from config.settings.stage import *
 
 rabbit_settings = RABBIT_MQ
 db_settings = MONGO
+model_path = MODEL_PATH
+model_name = MODEL_NAME
 
 #from django.conf import settings
 #
@@ -45,7 +47,7 @@ channel = connection.channel()
 channel.queue_declare(queue='ocr_queue',  durable=True)
 
 
-model = load_retinanet_model()
+model = load_retinanet_model(model_name, ,model_path)
 
 
 def callback_rabbitMQ(ch, method, properties, body):

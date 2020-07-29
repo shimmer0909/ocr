@@ -115,21 +115,26 @@ def get_session():
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
     
-def load_retinanet_model():
+def load_retinanet_model(model_name, model_path=None):
     if kerasNotFound == True:
         return None
-    MODEL_PATH = 'model/resnet50_csv_14.h5'
-    print('Downloaded pretrained model to ' + MODEL_PATH)
+    if model_path is None:
+        MODEL_PATH = 'model/resnet50_csv_14.h5'
+        print('Downloaded pretrained model to ' + MODEL_PATH)
 
-    # keras.backend.tensorflow_backend.set_session(get_session())
+         keras.backend.tensorflow_backend.set_session(get_session())
 
-    CLASSES_FILE = 'model/classes.csv'
-    model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
-    # print(model_path)
+        CLASSES_FILE = 'model/classes.csv'
+        model_path = os.path.join('model', sorted(os.listdir('model'), reverse=True)[0])
+    
+    print('MODEL_PATH : ',model_path)
 
     # load retinanet model
-    model = models.load_model(model_path, backbone_name='resnet50')
-    model = models.convert_model(model)
+    model = models.load_model(model_path+model_name, backbone_name='resnet50')
+    
+    if (model):
+        print ('MODEL LOADED SUCCESSFULLY: ', model_path+model_name)
+        model = models.convert_model(model)
     return model
 
 def pan_ocr(img, model=None):
