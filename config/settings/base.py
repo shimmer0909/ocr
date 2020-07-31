@@ -24,7 +24,7 @@ SECRET_KEY = 'e)@y45%%zup(st!v)f78z1k#@(dsfkw5+df5w%zem%&#+_p34x'
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 
-ALLOWED_HOSTS = ['35.244.40.169']
+ALLOWED_HOSTS = ['*']
 
 config = configparser.ConfigParser()
 

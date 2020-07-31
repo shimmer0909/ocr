@@ -1,28 +1,23 @@
 # ocr
+
 Usage:
-1.copy the pre-trained model from https://drive.google.com/file/d/1-xjWwbSH79ZZApdAyhTATuiPRCooEK2o/view?usp=sharing to ocr/ocr_app/model folder
 
-2.Install tesseract 4.1.x from https://notesalexp.org/tesseract-ocr/
+1. copy the pre-trained model from https://drive.google.com/file/d/1-xjWwbSH79ZZApdAyhTATuiPRCooEK2o/view?usp=sharing to ocr/ocr_app/model folder
 
-3.Install ghostscript using sudo apt install ghostscript 
+2. Install tesseract 4.1.x from https://notesalexp.org/tesseract-ocr/
 
-4.cd ocr
-  python manage.py runserver
+3. Install ghostscript using sudo apt install ghostscript
 
-5.cd ocr/ocr_app
-python subscribe.py
-  
-6.API - http://x.y.z.q/pan_ocr/
-  parameter:
-  {
-  "file_url":"image url",
-  "type":"pan",
-  "callback_url":"callback url"
-  }
-  
-7.API - http://x.y.z.q/getprocesseddoc/
-  parameter:
-  {
-  "transactionId":"transaction id"
-  }
-  
+4. cd ocr
+
+5. python manage.py runserver
+
+6. cd ocr/ocr_app
+
+7. python subscribe.py
+
+8. curl --location --request POST 'http://xx/ocr/' \
+   --header 'Content-Type: application/json' \
+   --data-raw '{"fileUrl": "", "type": "pan"}'
+
+9. curl GET 'http://xx/processedDoc/?transactionId=xxxx'
