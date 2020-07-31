@@ -96,15 +96,22 @@ def callback_rabbitMQ(ch, method, properties, body):
                     status = Mongo.updateStatus(objId,'error')
                     error = Mongo.updateError(objId,'failed to load image')
         
-        processTime = str(datetime.now() - t1_start)
+        processTime = datetime.now() - t1_start
 
-        Mongo.updateProcessTime(objId, processTime, t1_start, datetime.now())
+        Mongo.updateProcessTime(objId, processTime.total_seconds(), t1_start, datetime.now())
         data = Mongo.getById(str(rec['_id']))
         channel.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
         print('error in RabbitMQ subscriber: ',e)
         status = Mongo.updateStatus(objId, 'error')
-        error = Mongo.updateError(objId, 'error in RabbitMQ subscriber')
+        err = 'error in RabbitMQ subscriber'
+        
+        try:
+            err += ':' + str(e)
+        except: 
+            pass
+        
+        error = Mongo.updateError(objId, err)
         channel.basic_ack(delivery_tag=method.delivery_tag)
 
 channel.basic_consume('ocr_queue', callback_rabbitMQ)
